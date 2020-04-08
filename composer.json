@@ -1,0 +1,19 @@
+{
+    "name": "ybelenko/openapi-data-mocker-server-middleware",
+    "description": "PSR-15 HTTP Server Middleware to create mock responses from OpenAPI Schemas(OAS 3.0).",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["middleware", "PSR-15", "openapi", "swagger", "data", "mocker", "faker", "mock", "fake"],
+    "authors": [
+        {
+            "name": "Yuriy Belenko",
+            "email": "yura-bely@mail.ru"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": "^7.1",
+        "psr/http-server-middleware": "^1.0",
+        "ybelenko/openapi-data-mocker": "^1.0"
+    }
+}

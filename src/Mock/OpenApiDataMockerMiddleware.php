@@ -25,11 +25,11 @@
  */
 namespace OpenAPIServer\Mock;
 
-use Slim\Factory\AppFactory;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Http\Message\ResponseFactoryInterface;
 use OpenAPIServer\Mock\OpenApiDataMockerInterface;
 use InvalidArgumentException;
 
@@ -53,6 +53,11 @@ final class OpenApiDataMockerMiddleware implements MiddlewareInterface
     private $responses;
 
     /**
+     * @var ResponseFactoryInterface Factory to create new response instance.
+     */
+    private $responseFactory;
+
+    /**
      * @var callable|null Custom callback to select mocked response.
      */
     private $getMockResponseCallback;
@@ -67,6 +72,7 @@ final class OpenApiDataMockerMiddleware implements MiddlewareInterface
      *
      * @param OpenApiDataMockerInterface $mocker                  DataMocker.
      * @param array                      $responses               Array of responses schemas.
+     * @param ResponseFactoryInterface   $responseFactory         Factory to create new response instance.
      * @param callable|null              $getMockResponseCallback Custom callback to select mocked response.
      * Mock feature is disabled when this argument is null.
      * @example $getMockResponseCallback = function (ServerRequestInterface $request, array $responses) {
@@ -89,11 +95,13 @@ final class OpenApiDataMockerMiddleware implements MiddlewareInterface
     public function __construct(
         OpenApiDataMockerInterface $mocker,
         array $responses,
+        ResponseFactoryInterface $responseFactory,
         $getMockResponseCallback = null,
         $afterCallback = null
     ) {
         $this->mocker = $mocker;
         $this->responses = $responses;
+        $this->responseFactory = $responseFactory;
         if (is_callable($getMockResponseCallback)) {
             $this->getMockResponseCallback = $getMockResponseCallback;
         } elseif ($getMockResponseCallback !== null) {
@@ -130,7 +138,7 @@ final class OpenApiDataMockerMiddleware implements MiddlewareInterface
             // response schema succesfully selected, we can mock it now
             $statusCode = ($mockedResponse['code'] === 0) ? 200 : $mockedResponse['code'];
             $contentType = '*/*';
-            $response = AppFactory::determineResponseFactory()->createResponse($statusCode);
+            $response = $this->responseFactory->createResponse($statusCode);
             $responseSchema = json_decode($mockedResponse['jsonSchema'], true);
 
             if (is_array($responseSchema) && array_key_exists('headers', $responseSchema)) {

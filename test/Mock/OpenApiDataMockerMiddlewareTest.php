@@ -27,8 +27,8 @@ namespace OpenAPIServer\Mock;
 
 use OpenAPIServer\Mock\OpenApiDataMockerMiddleware;
 use OpenAPIServer\Mock\OpenApiDataMocker;
-use Slim\Factory\AppFactory;
-use Slim\Factory\ServerRequestCreatorFactory;
+use Slim\Psr7\Factory\ServerRequestFactory;
+use Slim\Psr7\Factory\ResponseFactory;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -52,10 +52,11 @@ class OpenApiDataMockerMiddlewareTest extends TestCase
     public function testConstructor(
         $mocker,
         $responses,
+        $responseFactory,
         $getMockResponseCallback,
         $afterCallback
     ) {
-        $middleware = new OpenApiDataMockerMiddleware($mocker, $responses, $getMockResponseCallback, $afterCallback);
+        $middleware = new OpenApiDataMockerMiddleware($mocker, $responses, $responseFactory, $getMockResponseCallback, $afterCallback);
         $this->assertInstanceOf(OpenApiDataMockerMiddleware::class, $middleware);
         $this->assertNotNull($middleware);
     }
@@ -69,8 +70,8 @@ class OpenApiDataMockerMiddlewareTest extends TestCase
             return false;
         };
         return [
-            [new OpenApiDataMocker(), [], null, null],
-            [new OpenApiDataMocker(), [], $getMockResponseCallback, $afterCallback],
+            [new OpenApiDataMocker(), [], new ResponseFactory(), null, null],
+            [new OpenApiDataMocker(), [], new ResponseFactory(), $getMockResponseCallback, $afterCallback],
         ];
     }
 
@@ -83,20 +84,21 @@ class OpenApiDataMockerMiddlewareTest extends TestCase
     public function testConstructorWithInvalidArguments(
         $mocker,
         $responses,
+        $responseFactory,
         $getMockResponseCallback,
         $afterCallback
     ) {
-        $middleware = new OpenApiDataMockerMiddleware($mocker, $responses, $getMockResponseCallback, $afterCallback);
+        $middleware = new OpenApiDataMockerMiddleware($mocker, $responses, $responseFactory, $getMockResponseCallback, $afterCallback);
     }
 
     public function provideConstructInvalidArguments()
     {
         return [
             'getMockResponseCallback not callable' => [
-                new OpenApiDataMocker(), [], 'foobar', null,
+                new OpenApiDataMocker(), [], new ResponseFactory(), 'foobar', null,
             ],
             'afterCallback not callable' => [
-                new OpenApiDataMocker(), [], null, 'foobar',
+                new OpenApiDataMocker(), [], new ResponseFactory(), null, 'foobar',
             ],
         ];
     }
@@ -108,6 +110,7 @@ class OpenApiDataMockerMiddlewareTest extends TestCase
     public function testProcess(
         $mocker,
         $responses,
+        $responseFactory,
         $getMockResponseCallback,
         $afterCallback,
         $request,
@@ -120,11 +123,12 @@ class OpenApiDataMockerMiddlewareTest extends TestCase
         // Create a stub for the RequestHandlerInterface interface.
         $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->method('handle')
-             ->willReturn(AppFactory::determineResponseFactory()->createResponse());
+            ->willReturn($responseFactory->createResponse());
 
         $middleware = new OpenApiDataMockerMiddleware(
             $mocker,
             $responses,
+            $responseFactory,
             $getMockResponseCallback,
             $afterCallback
         );
@@ -224,15 +228,14 @@ class OpenApiDataMockerMiddlewareTest extends TestCase
             ],
         ];
 
-        $requestFactory = ServerRequestCreatorFactory::create();
-
         return [
             'callbacks null' => [
                 $mocker,
                 $responses,
+                new ResponseFactory(),
                 null,
                 null,
-                $requestFactory->createServerRequestFromGlobals(),
+                ServerRequestFactory::createFromGlobals(),
                 200,
                 [],
                 ['X-OpenAPIServer-Mock', 'x-location', 'x-created-id'],
@@ -241,10 +244,10 @@ class OpenApiDataMockerMiddlewareTest extends TestCase
             'xml not supported' => [
                 $mocker,
                 $responsesXmlOnly,
+                new ResponseFactory(),
                 $getMockResponseCallback,
                 $afterCallback,
-                $requestFactory
-                    ->createServerRequestFromGlobals()
+                ServerRequestFactory::createFromGlobals()
                     ->withHeader('X-OpenAPIServer-Mock', 'ping'),
                 201,
                 ['X-OpenAPIServer-Mock' => 'pong', 'content-type' => '*/*'],
@@ -254,10 +257,10 @@ class OpenApiDataMockerMiddlewareTest extends TestCase
             'mock response default schema' => [
                 $mocker,
                 $responses,
+                new ResponseFactory(),
                 $getMockResponseCallback,
                 $afterCallback,
-                $requestFactory
-                    ->createServerRequestFromGlobals()
+                ServerRequestFactory::createFromGlobals()
                     ->withHeader('X-OpenAPIServer-Mock', 'ping'),
                 201,
                 ['X-OpenAPIServer-Mock' => 'pong', 'content-type' => 'application/json', 'x-location' => '*', 'x-created-id' => '*'],

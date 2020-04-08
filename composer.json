@@ -15,5 +15,10 @@
         "php": "^7.1",
         "psr/http-server-middleware": "^1.0",
         "ybelenko/openapi-data-mocker": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "OpenAPIServer\\": "src/"
+        }
     }
 }

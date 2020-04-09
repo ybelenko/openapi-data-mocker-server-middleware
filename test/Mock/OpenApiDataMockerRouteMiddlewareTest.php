@@ -191,37 +191,31 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
 
         $responses = [
             '400' => [
-                'jsonSchema' => json_encode([
-                    'description' => 'Bad Request Response',
-                    'content' => new StdClass(),
-                ]),
+                'description' => 'Bad Request Response',
+                'content' => new StdClass(),
             ],
             'default' => [
-                'jsonSchema' => json_encode([
-                    'description' => 'Success Response',
-                    'headers' => [
-                        'X-Location' => ['schema' => ['type' => 'string']],
-                        'X-Created-Id' => ['schema' => ['type' => 'integer']],
-                    ],
-                    'content' => [
-                        'application/json;encoding=utf-8' => ['schema' => ['type' => 'object', 'properties' => ['id' => ['type' => 'integer'], 'className' => ['type' => 'string'], 'declawed' => ['type' => 'boolean']]]],
-                    ],
-                ]),
+                'description' => 'Success Response',
+                'headers' => [
+                    'X-Location' => ['schema' => ['type' => 'string']],
+                    'X-Created-Id' => ['schema' => ['type' => 'integer']],
+                ],
+                'content' => [
+                    'application/json;encoding=utf-8' => ['schema' => ['type' => 'object', 'properties' => ['id' => ['type' => 'integer'], 'className' => ['type' => 'string'], 'declawed' => ['type' => 'boolean']]]],
+                ],
             ],
         ];
 
         $responsesXmlOnly = [
             'default' => [
-                'jsonSchema' => json_encode([
-                    'description' => 'Success Response',
-                    'content' => [
-                        'application/xml' => [
-                            'schema' => [
-                                'type' => 'string',
-                            ],
+                'description' => 'Success Response',
+                'content' => [
+                    'application/xml' => [
+                        'schema' => [
+                            'type' => 'string',
                         ],
                     ],
-                ]),
+                ],
             ],
         ];
 

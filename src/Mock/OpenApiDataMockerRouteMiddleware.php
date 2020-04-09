@@ -133,30 +133,27 @@ final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
         if (
             is_string($mockedStatusCode)
             && array_key_exists($mockedStatusCode, $this->responses)
-            && array_key_exists('jsonSchema', $this->responses[$mockedStatusCode])
         ) {
             // response schema succesfully selected, we can mock it now
             $statusCode = ($mockedStatusCode === 'default') ? 200 : (int) $mockedStatusCode;
             $mockedResponse = $this->responses[$mockedStatusCode];
             $contentType = '*/*';
             $response = $this->responseFactory->createResponse($statusCode);
-            $responseSchema = json_decode($mockedResponse['jsonSchema'], true);
-
-            if (is_array($responseSchema) && array_key_exists('headers', $responseSchema)) {
+            if (is_array($mockedResponse) && array_key_exists('headers', $mockedResponse)) {
                 // response schema contains headers definitions, apply them one by one
-                foreach ($responseSchema['headers'] as $headerName => $headerDefinition) {
+                foreach ($mockedResponse['headers'] as $headerName => $headerDefinition) {
                     $response = $response->withHeader($headerName, $this->mocker->mockFromSchema($headerDefinition['schema']));
                 }
             }
 
             if (
-                is_array($responseSchema)
-                && array_key_exists('content', $responseSchema)
-                && !empty($responseSchema['content'])
+                is_array($mockedResponse)
+                && array_key_exists('content', $mockedResponse)
+                && !empty($mockedResponse['content'])
             ) {
                 // response schema contains body definition
                 $responseContentSchema = null;
-                foreach ($responseSchema['content'] as $schemaContentType => $schemaDefinition) {
+                foreach ($mockedResponse['content'] as $schemaContentType => $schemaDefinition) {
                     // we can respond in JSON format when any(*/*) content-type allowed
                     // or JSON(application/json) content-type specifically defined
                     if (

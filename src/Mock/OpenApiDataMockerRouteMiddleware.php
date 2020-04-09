@@ -48,7 +48,7 @@ final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
     private $mocker;
 
     /**
-     * @var array Array of responses schemas.
+     * @var array|object Array or object with responses schemas.
      */
     private $responses;
 
@@ -71,16 +71,17 @@ final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
      * Class constructor.
      *
      * @param OpenApiDataMockerInterface $mocker                    DataMocker.
-     * @param array                      $responses                 Array of responses schemas.
+     * @param array|object               $responses                 Array or object with responses schemas.
      * @param ResponseFactoryInterface   $responseFactory           Factory to create new response instance.
      * @param callable|null              $getMockStatusCodeCallback Custom callback to select mocked response.
      * Mock feature is disabled when this argument is null.
-     * @example $getMockStatusCodeCallback = function (ServerRequestInterface $request, array $responses) {
+     * @example $getMockStatusCodeCallback = function (ServerRequestInterface $request, $responses) {
      *     // check if client clearly asks for mocked response
      *     if (
      *         $request->hasHeader('X-OpenAPIServer-Mock')
      *         && $request->header('X-OpenAPIServer-Mock')[0] === 'ping'
      *     ) {
+     *         $responses = (array) $responses;
      *         return array_key_first($responses);
      *     }
      *     return false;
@@ -94,13 +95,18 @@ final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
      */
     public function __construct(
         OpenApiDataMockerInterface $mocker,
-        array $responses,
+        $responses,
         ResponseFactoryInterface $responseFactory,
         $getMockStatusCodeCallback = null,
         $afterCallback = null
     ) {
         $this->mocker = $mocker;
-        $this->responses = $responses;
+        if (is_object($responses) || is_array($responses)) {
+            $this->responses = (array) $responses;
+        } else {
+            throw new InvalidArgumentException('\$responses must be array or object');
+        }
+
         $this->responseFactory = $responseFactory;
         if (is_callable($getMockStatusCodeCallback)) {
             $this->getMockStatusCodeCallback = $getMockStatusCodeCallback;
@@ -136,12 +142,13 @@ final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
         ) {
             // response schema succesfully selected, we can mock it now
             $statusCode = ($mockedStatusCode === 'default') ? 200 : (int) $mockedStatusCode;
-            $mockedResponse = $this->responses[$mockedStatusCode];
+            $mockedResponse = (array) $this->responses[$mockedStatusCode];
             $contentType = '*/*';
             $response = $this->responseFactory->createResponse($statusCode);
             if (is_array($mockedResponse) && array_key_exists('headers', $mockedResponse)) {
                 // response schema contains headers definitions, apply them one by one
                 foreach ($mockedResponse['headers'] as $headerName => $headerDefinition) {
+                    $headerDefinition = (array) $headerDefinition;
                     $response = $response->withHeader($headerName, $this->mocker->mockFromSchema($headerDefinition['schema']));
                 }
             }
@@ -156,6 +163,7 @@ final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
                 foreach ($mockedResponse['content'] as $schemaContentType => $schemaDefinition) {
                     // we can respond in JSON format when any(*/*) content-type allowed
                     // or JSON(application/json) content-type specifically defined
+                    $schemaDefinition = (array) $schemaDefinition;
                     if (
                         $schemaContentType === '*/*'
                         || strtolower(substr($schemaContentType, 0, 16)) === 'application/json'

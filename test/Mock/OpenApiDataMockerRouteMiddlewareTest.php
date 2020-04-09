@@ -100,6 +100,9 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
             'afterCallback not callable' => [
                 new OpenApiDataMocker(), [], new ResponseFactory(), null, 'foobar',
             ],
+            'responses not an array or object' => [
+                new OpenApiDataMocker(), 'foobar', new ResponseFactory(), null, null,
+            ],
         ];
     }
 
@@ -168,8 +171,9 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
                 && $request->getHeader($mockHttpHeader)[0] === 'ping';
         };
 
-        $getMockStatusCodeCallback = function (ServerRequestInterface $request, array $responses) use ($isMockResponseRequired) {
+        $getMockStatusCodeCallback = function (ServerRequestInterface $request, $responses) use ($isMockResponseRequired) {
             if ($isMockResponseRequired($request)) {
+                $responses = (array) $responses;
                 if (array_key_exists('default', $responses)) {
                     return 'default';
                 }
@@ -219,6 +223,48 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
             ],
         ];
 
+        $responsesObj = json_decode(
+            '{
+                "400": {
+                    "description": "Bad Request Response",
+                    "content": {}
+                },
+                "default": {
+                    "description": "Success Response",
+                    "headers": {
+                        "X-Location": {
+                            "schema": {
+                                "type": "string"
+                            }
+                        },
+                        "X-Created-Id": {
+                            "schema": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "content": {
+                        "application/json;encoding=utf-8": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "className": {
+                                        "type": "string"
+                                    },
+                                    "declawed": {
+                                        "type": "boolean"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }'
+        );
+
         return [
             'callbacks null' => [
                 $mocker,
@@ -248,6 +294,23 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
             'mock response default schema' => [
                 $mocker,
                 $responses,
+                new ResponseFactory(),
+                $getMockStatusCodeCallback,
+                $afterCallback,
+                ServerRequestFactory::createFromGlobals()
+                    ->withHeader('X-OpenAPIServer-Mock', 'ping'),
+                200,
+                ['X-OpenAPIServer-Mock' => 'pong', 'content-type' => 'application/json', 'x-location' => '*', 'x-created-id' => '*'],
+                [],
+                [
+                    'id' => 1,
+                    'className' => 'cat',
+                    'declawed' => false,
+                ],
+            ],
+            'mock response default schema with responses as object' => [
+                $mocker,
+                $responsesObj,
                 new ResponseFactory(),
                 $getMockStatusCodeCallback,
                 $afterCallback,

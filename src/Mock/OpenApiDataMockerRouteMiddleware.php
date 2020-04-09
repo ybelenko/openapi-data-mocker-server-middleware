@@ -60,7 +60,7 @@ final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
     /**
      * @var callable|null Custom callback to select mocked response.
      */
-    private $getMockResponseCallback;
+    private $getMockStatusCodeCallback;
 
     /**
      * @var callable|null Custom after callback.
@@ -70,22 +70,22 @@ final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
     /**
      * Class constructor.
      *
-     * @param OpenApiDataMockerInterface $mocker                  DataMocker.
-     * @param array                      $responses               Array of responses schemas.
-     * @param ResponseFactoryInterface   $responseFactory         Factory to create new response instance.
-     * @param callable|null              $getMockResponseCallback Custom callback to select mocked response.
+     * @param OpenApiDataMockerInterface $mocker                    DataMocker.
+     * @param array                      $responses                 Array of responses schemas.
+     * @param ResponseFactoryInterface   $responseFactory           Factory to create new response instance.
+     * @param callable|null              $getMockStatusCodeCallback Custom callback to select mocked response.
      * Mock feature is disabled when this argument is null.
-     * @example $getMockResponseCallback = function (ServerRequestInterface $request, array $responses) {
+     * @example $getMockStatusCodeCallback = function (ServerRequestInterface $request, array $responses) {
      *     // check if client clearly asks for mocked response
      *     if (
      *         $request->hasHeader('X-OpenAPIServer-Mock')
      *         && $request->header('X-OpenAPIServer-Mock')[0] === 'ping'
      *     ) {
-     *         return $responses[array_key_first($responses)];
+     *         return array_key_first($responses);
      *     }
      *     return false;
      * };
-     * @param callable|null              $afterCallback           After callback.
+     * @param callable|null              $afterCallback             After callback.
      * Function must return response instance.
      * @example $afterCallback = function (ServerRequestInterface $request, ResponseInterface $response) {
      *     // mark mocked response to distinguish real and fake responses
@@ -96,17 +96,17 @@ final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
         OpenApiDataMockerInterface $mocker,
         array $responses,
         ResponseFactoryInterface $responseFactory,
-        $getMockResponseCallback = null,
+        $getMockStatusCodeCallback = null,
         $afterCallback = null
     ) {
         $this->mocker = $mocker;
         $this->responses = $responses;
         $this->responseFactory = $responseFactory;
-        if (is_callable($getMockResponseCallback)) {
-            $this->getMockResponseCallback = $getMockResponseCallback;
-        } elseif ($getMockResponseCallback !== null) {
+        if (is_callable($getMockStatusCodeCallback)) {
+            $this->getMockStatusCodeCallback = $getMockStatusCodeCallback;
+        } elseif ($getMockStatusCodeCallback !== null) {
             // wrong argument type
-            throw new InvalidArgumentException('\$getMockResponseCallback must be closure or null');
+            throw new InvalidArgumentException('\$getMockStatusCodeCallback must be closure or null');
         }
 
         if (is_callable($afterCallback)) {
@@ -127,16 +127,17 @@ final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $customCallback = $this->getMockResponseCallback;
+        $customCallback = $this->getMockStatusCodeCallback;
         $customAfterCallback = $this->afterCallback;
-        $mockedResponse = (is_callable($customCallback)) ? $customCallback($request, $this->responses) : null;
+        $mockedStatusCode = (is_callable($customCallback)) ? $customCallback($request, $this->responses) : null;
         if (
-            is_array($mockedResponse)
-            && array_key_exists('code', $mockedResponse)
-            && array_key_exists('jsonSchema', $mockedResponse)
+            is_string($mockedStatusCode)
+            && array_key_exists($mockedStatusCode, $this->responses)
+            && array_key_exists('jsonSchema', $this->responses[$mockedStatusCode])
         ) {
             // response schema succesfully selected, we can mock it now
-            $statusCode = ($mockedResponse['code'] === 0) ? 200 : $mockedResponse['code'];
+            $statusCode = ($mockedStatusCode === 'default') ? 200 : (int) $mockedStatusCode;
+            $mockedResponse = $this->responses[$mockedStatusCode];
             $contentType = '*/*';
             $response = $this->responseFactory->createResponse($statusCode);
             $responseSchema = json_decode($mockedResponse['jsonSchema'], true);

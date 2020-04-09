@@ -53,17 +53,17 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
         $mocker,
         $responses,
         $responseFactory,
-        $getMockResponseCallback,
+        $getMockStatusCodeCallback,
         $afterCallback
     ) {
-        $middleware = new OpenApiDataMockerRouteMiddleware($mocker, $responses, $responseFactory, $getMockResponseCallback, $afterCallback);
+        $middleware = new OpenApiDataMockerRouteMiddleware($mocker, $responses, $responseFactory, $getMockStatusCodeCallback, $afterCallback);
         $this->assertInstanceOf(OpenApiDataMockerRouteMiddleware::class, $middleware);
         $this->assertNotNull($middleware);
     }
 
     public function provideConstructCorrectArguments()
     {
-        $getMockResponseCallback = function () {
+        $getMockStatusCodeCallback = function () {
             return false;
         };
         $afterCallback = function () {
@@ -71,7 +71,7 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
         };
         return [
             [new OpenApiDataMocker(), [], new ResponseFactory(), null, null],
-            [new OpenApiDataMocker(), [], new ResponseFactory(), $getMockResponseCallback, $afterCallback],
+            [new OpenApiDataMocker(), [], new ResponseFactory(), $getMockStatusCodeCallback, $afterCallback],
         ];
     }
 
@@ -85,16 +85,16 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
         $mocker,
         $responses,
         $responseFactory,
-        $getMockResponseCallback,
+        $getMockStatusCodeCallback,
         $afterCallback
     ) {
-        $middleware = new OpenApiDataMockerRouteMiddleware($mocker, $responses, $responseFactory, $getMockResponseCallback, $afterCallback);
+        $middleware = new OpenApiDataMockerRouteMiddleware($mocker, $responses, $responseFactory, $getMockStatusCodeCallback, $afterCallback);
     }
 
     public function provideConstructInvalidArguments()
     {
         return [
-            'getMockResponseCallback not callable' => [
+            'getMockStatusCodeCallback not callable' => [
                 new OpenApiDataMocker(), [], new ResponseFactory(), 'foobar', null,
             ],
             'afterCallback not callable' => [
@@ -111,7 +111,7 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
         $mocker,
         $responses,
         $responseFactory,
-        $getMockResponseCallback,
+        $getMockStatusCodeCallback,
         $afterCallback,
         $request,
         $expectedStatusCode,
@@ -129,7 +129,7 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
             $mocker,
             $responses,
             $responseFactory,
-            $getMockResponseCallback,
+            $getMockStatusCodeCallback,
             $afterCallback
         );
         $response = $middleware->process($request, $handler);
@@ -168,14 +168,14 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
                 && $request->getHeader($mockHttpHeader)[0] === 'ping';
         };
 
-        $getMockResponseCallback = function (ServerRequestInterface $request, array $responses) use ($isMockResponseRequired) {
+        $getMockStatusCodeCallback = function (ServerRequestInterface $request, array $responses) use ($isMockResponseRequired) {
             if ($isMockResponseRequired($request)) {
                 if (array_key_exists('default', $responses)) {
-                    return $responses['default'];
+                    return 'default';
                 }
 
-                // return first response
-                return $responses[array_key_first($responses)];
+                // return status code of the first response
+                return array_key_first($responses);
             }
 
             return false;
@@ -191,14 +191,12 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
 
         $responses = [
             '400' => [
-                'code' => 400,
                 'jsonSchema' => json_encode([
                     'description' => 'Bad Request Response',
                     'content' => new StdClass(),
                 ]),
             ],
             'default' => [
-                'code' => 201,
                 'jsonSchema' => json_encode([
                     'description' => 'Success Response',
                     'headers' => [
@@ -214,7 +212,6 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
 
         $responsesXmlOnly = [
             'default' => [
-                'code' => 201,
                 'jsonSchema' => json_encode([
                     'description' => 'Success Response',
                     'content' => [
@@ -245,11 +242,11 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
                 $mocker,
                 $responsesXmlOnly,
                 new ResponseFactory(),
-                $getMockResponseCallback,
+                $getMockStatusCodeCallback,
                 $afterCallback,
                 ServerRequestFactory::createFromGlobals()
                     ->withHeader('X-OpenAPIServer-Mock', 'ping'),
-                201,
+                200,
                 ['X-OpenAPIServer-Mock' => 'pong', 'content-type' => '*/*'],
                 ['x-location', 'x-created-id'],
                 'Mock feature supports only "application/json" content-type!',
@@ -258,11 +255,11 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
                 $mocker,
                 $responses,
                 new ResponseFactory(),
-                $getMockResponseCallback,
+                $getMockStatusCodeCallback,
                 $afterCallback,
                 ServerRequestFactory::createFromGlobals()
                     ->withHeader('X-OpenAPIServer-Mock', 'ping'),
-                201,
+                200,
                 ['X-OpenAPIServer-Mock' => 'pong', 'content-type' => 'application/json', 'x-location' => '*', 'x-created-id' => '*'],
                 [],
                 [

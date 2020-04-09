@@ -1,7 +1,7 @@
 <?php
 
 /**
- * OpenApiDataMockerMiddleware
+ * OpenApiDataMockerRouteMiddleware
  *
  * PHP version 7.1
  *
@@ -34,13 +34,13 @@ use OpenAPIServer\Mock\OpenApiDataMockerInterface;
 use InvalidArgumentException;
 
 /**
- * OpenApiDataMockerMiddleware Class Doc Comment
+ * OpenApiDataMockerRouteMiddleware Class Doc Comment
  *
  * @package OpenAPIServer\Mock
  * @author  OpenAPI Generator team
  * @link    https://github.com/openapitools/openapi-generator
  */
-final class OpenApiDataMockerMiddleware implements MiddlewareInterface
+final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
 {
     /**
      * @var OpenApiDataMockerInterface DataMocker.

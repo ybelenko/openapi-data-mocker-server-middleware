@@ -1,7 +1,7 @@
 <?php
 
 /**
- * OpenApiDataMockerMiddlewareTest
+ * OpenApiDataMockerRouteMiddlewareTest
  *
  * PHP version 7.1
  *
@@ -25,7 +25,7 @@
  */
 namespace OpenAPIServer\Mock;
 
-use OpenAPIServer\Mock\OpenApiDataMockerMiddleware;
+use OpenAPIServer\Mock\OpenApiDataMockerRouteMiddleware;
 use OpenAPIServer\Mock\OpenApiDataMocker;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use Slim\Psr7\Factory\ResponseFactory;
@@ -36,14 +36,14 @@ use PHPUnit\Framework\TestCase;
 use StdClass;
 
 /**
- * OpenApiDataMockerMiddlewareTest Class Doc Comment
+ * OpenApiDataMockerRouteMiddlewareTest Class Doc Comment
  *
  * @package OpenAPIServer\Mock
  * @author  OpenAPI Generator team
  * @link    https://github.com/openapitools/openapi-generator
- * @coversDefaultClass \OpenAPIServer\Mock\OpenApiDataMockerMiddleware
+ * @coversDefaultClass \OpenAPIServer\Mock\OpenApiDataMockerRouteMiddleware
  */
-class OpenApiDataMockerMiddlewareTest extends TestCase
+class OpenApiDataMockerRouteMiddlewareTest extends TestCase
 {
     /**
      * @covers ::__construct
@@ -56,8 +56,8 @@ class OpenApiDataMockerMiddlewareTest extends TestCase
         $getMockResponseCallback,
         $afterCallback
     ) {
-        $middleware = new OpenApiDataMockerMiddleware($mocker, $responses, $responseFactory, $getMockResponseCallback, $afterCallback);
-        $this->assertInstanceOf(OpenApiDataMockerMiddleware::class, $middleware);
+        $middleware = new OpenApiDataMockerRouteMiddleware($mocker, $responses, $responseFactory, $getMockResponseCallback, $afterCallback);
+        $this->assertInstanceOf(OpenApiDataMockerRouteMiddleware::class, $middleware);
         $this->assertNotNull($middleware);
     }
 
@@ -88,7 +88,7 @@ class OpenApiDataMockerMiddlewareTest extends TestCase
         $getMockResponseCallback,
         $afterCallback
     ) {
-        $middleware = new OpenApiDataMockerMiddleware($mocker, $responses, $responseFactory, $getMockResponseCallback, $afterCallback);
+        $middleware = new OpenApiDataMockerRouteMiddleware($mocker, $responses, $responseFactory, $getMockResponseCallback, $afterCallback);
     }
 
     public function provideConstructInvalidArguments()
@@ -125,7 +125,7 @@ class OpenApiDataMockerMiddlewareTest extends TestCase
         $handler->method('handle')
             ->willReturn($responseFactory->createResponse());
 
-        $middleware = new OpenApiDataMockerMiddleware(
+        $middleware = new OpenApiDataMockerRouteMiddleware(
             $mocker,
             $responses,
             $responseFactory,

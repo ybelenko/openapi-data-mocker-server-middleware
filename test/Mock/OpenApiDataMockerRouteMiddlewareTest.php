@@ -24,6 +24,7 @@ use StdClass;
 /**
  * OpenApiDataMockerRouteMiddlewareTest
  *
+ * phpcs:disable Squiz.Commenting,Generic.Commenting,PEAR.Commenting
  * @coversDefaultClass \OpenAPIServer\Mock\OpenApiDataMockerRouteMiddleware
  */
 class OpenApiDataMockerRouteMiddlewareTest extends TestCase

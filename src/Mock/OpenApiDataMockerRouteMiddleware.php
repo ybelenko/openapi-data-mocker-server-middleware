@@ -25,30 +25,26 @@ use InvalidArgumentException;
  */
 final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
 {
-    /**
-     * @var OpenApiDataMockerInterface DataMocker.
-     */
+    // I don't think class variables requires complete doc blocks
+    // phpcs:disable Generic.Commenting.DocComment.MissingShort,Generic.Commenting.DocComment.ContentAfterOpen,Generic.Commenting.DocComment.ContentBeforeClose
+
+    /** @var OpenApiDataMockerInterface DataMocker. */
     private $mocker;
 
-    /**
-     * @var array|object Array or object with responses schemas.
-     */
+    /** @var array|object Array or object with responses schemas. */
     private $responses;
 
-    /**
-     * @var ResponseFactoryInterface Factory to create new response instance.
-     */
+    /** @var ResponseFactoryInterface Factory to create new response instance. */
     private $responseFactory;
 
-    /**
-     * @var callable|null Custom callback to select mocked response.
-     */
+    /** @var callable|null Custom callback to select mocked response. */
     private $getMockStatusCodeCallback;
 
-    /**
-     * @var callable|null Custom after callback.
-     */
+    /** @var callable|null Custom after callback. */
     private $afterCallback;
+
+    // turn sniffs back on
+    // phpcs:enable
 
     /**
      * Class constructor.
@@ -57,7 +53,10 @@ final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
      * @param array|object               $responses                 Array or object with responses schemas.
      * @param ResponseFactoryInterface   $responseFactory           Factory to create new response instance.
      * @param callable|null              $getMockStatusCodeCallback Custom callback to select mocked response.
-     * Mock feature is disabled when this argument is null.
+     *                                                              Mock feature is disabled when this argument is null.
+     * @param callable|null              $afterCallback             After callback.
+     *                                                              Function must return response instance.
+     *
      * @example $getMockStatusCodeCallback = function (ServerRequestInterface $request, $responses) {
      *     // check if client clearly asks for mocked response
      *     if (
@@ -69,12 +68,12 @@ final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
      *     }
      *     return false;
      * };
-     * @param callable|null              $afterCallback             After callback.
-     * Function must return response instance.
      * @example $afterCallback = function (ServerRequestInterface $request, ResponseInterface $response) {
      *     // mark mocked response to distinguish real and fake responses
      *     return $response->withHeader('X-OpenAPIServer-Mock', 'pong');
      * };
+     *
+     * @throws \InvalidArgumentException When invalid arguments provided.
      */
     public function __construct(
         OpenApiDataMockerInterface $mocker,
@@ -107,10 +106,10 @@ final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Parse incoming JSON input into a native PHP format
+     * Executes middleware logic.
      *
-     * @param ServerRequestInterface  $request HTTP request
-     * @param RequestHandlerInterface $handler Request handler
+     * @param ServerRequestInterface  $request HTTP request.
+     * @param RequestHandlerInterface $handler Request handler.
      *
      * @return ResponseInterface HTTP response
      */

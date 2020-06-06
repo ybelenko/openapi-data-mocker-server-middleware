@@ -57,21 +57,7 @@ final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
      * @param callable|null              $afterCallback             After callback.
      *                                                              Function must return response instance.
      *
-     * @example $getMockStatusCodeCallback = function (ServerRequestInterface $request, $responses) {
-     *     // check if client clearly asks for mocked response
-     *     if (
-     *         $request->hasHeader('X-OpenAPIServer-Mock')
-     *         && $request->header('X-OpenAPIServer-Mock')[0] === 'ping'
-     *     ) {
-     *         $responses = (array) $responses;
-     *         return array_key_first($responses);
-     *     }
-     *     return false;
-     * };
-     * @example $afterCallback = function (ServerRequestInterface $request, ResponseInterface $response) {
-     *     // mark mocked response to distinguish real and fake responses
-     *     return $response->withHeader('X-OpenAPIServer-Mock', 'pong');
-     * };
+     * @example https://github.com/ybelenko/openapi-data-mocker-server-middleware/blob/master/examples/slim_example.php
      *
      * @throws \InvalidArgumentException When invalid arguments provided.
      */

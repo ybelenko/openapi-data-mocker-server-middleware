@@ -2,7 +2,7 @@
 
 /**
  * Openapi Data Mocker Server Middleware
- * PHP version 7.1
+ * PHP version 7.2
  *
  * @package OpenAPIServer\Mock
  * @link    https://github.com/ybelenko/openapi-data-mocker-server-middleware

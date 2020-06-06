@@ -10,6 +10,8 @@
  * @license MIT
  */
 
+declare(strict_types=1);
+
 namespace OpenAPIServer\Mock;
 
 use Psr\Http\Message\ResponseInterface;
@@ -18,7 +20,6 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use OpenAPIServer\Mock\OpenApiDataMockerInterface;
-use InvalidArgumentException;
 
 /**
  * OpenApiDataMockerRouteMiddleware
@@ -58,37 +59,19 @@ final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
      *                                                              Function must return response instance.
      *
      * @example https://github.com/ybelenko/openapi-data-mocker-server-middleware/blob/master/examples/slim_example.php
-     *
-     * @throws \InvalidArgumentException When invalid arguments provided.
      */
     public function __construct(
         OpenApiDataMockerInterface $mocker,
-        $responses,
+        array $responses,
         ResponseFactoryInterface $responseFactory,
-        $getMockStatusCodeCallback = null,
-        $afterCallback = null
+        ?callable $getMockStatusCodeCallback = null,
+        ?callable $afterCallback = null
     ) {
         $this->mocker = $mocker;
-        if (is_object($responses) || is_array($responses)) {
-            $this->responses = (array) $responses;
-        } else {
-            throw new InvalidArgumentException('\$responses must be array or object');
-        }
-
+        $this->responses = $responses;
         $this->responseFactory = $responseFactory;
-        if (is_callable($getMockStatusCodeCallback)) {
-            $this->getMockStatusCodeCallback = $getMockStatusCodeCallback;
-        } elseif ($getMockStatusCodeCallback !== null) {
-            // wrong argument type
-            throw new InvalidArgumentException('\$getMockStatusCodeCallback must be closure or null');
-        }
-
-        if (is_callable($afterCallback)) {
-            $this->afterCallback = $afterCallback;
-        } elseif ($afterCallback !== null) {
-            // wrong argument type
-            throw new InvalidArgumentException('\$afterCallback must be closure or null');
-        }
+        $this->getMockStatusCodeCallback = $getMockStatusCodeCallback;
+        $this->afterCallback = $afterCallback;
     }
 
     /**
@@ -108,7 +91,7 @@ final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
             is_string($mockedStatusCode)
             && array_key_exists($mockedStatusCode, $this->responses)
         ) {
-            // response schema succesfully selected, we can mock it now
+            // response schema successfully selected, we can mock it now
             $statusCode = ($mockedStatusCode === 'default') ? 200 : (int) $mockedStatusCode;
             $mockedResponse = (array) $this->responses[$mockedStatusCode];
             $contentType = '*/*';

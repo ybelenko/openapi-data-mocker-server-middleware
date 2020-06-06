@@ -18,7 +18,7 @@ composer require ybelenko/openapi-data-mocker-server-middleware
 
 1. `$mocker: OpenApiDataMockerInterface`
     + is mocker class instance. To create custom data mocker extend `OpenAPIServer\Mock\OpenApiDataMockerInterface`.
-2. `$responses: array|object`
+2. `$responses: array`
     + Array with OAS3 response definitions of applied route. Check [examples/get_mock_responses.php](examples/get_mock_responses.php) file.
 3. `$responseFactory: ResponseFactoryInterface`
     + Any PSR-17 compliant response factory. [PSR-17: HTTP Factories - 2.2 ResponseFactoryInterface](https://www.php-fig.org/psr/psr-17/#22-responsefactoryinterface)

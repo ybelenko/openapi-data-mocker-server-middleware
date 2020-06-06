@@ -62,7 +62,6 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
     /**
      * @covers ::__construct
      * @dataProvider provideConstructInvalidArguments
-     * @expectedException \InvalidArgumentException
      * @expectedException \TypeError
      */
     public function testConstructorWithInvalidArguments(
@@ -295,7 +294,7 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
             ],
             'mock response default schema with responses as object' => [
                 $mocker,
-                $responsesObj,
+                $responses,
                 $responseFactory,
                 $getMockStatusCodeCallback,
                 $afterCallback,

@@ -20,6 +20,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use PHPUnit\Framework\TestCase;
 use StdClass;
+use TypeError;
 
 /**
  * OpenApiDataMockerRouteMiddlewareTest
@@ -62,7 +63,6 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
     /**
      * @covers ::__construct
      * @dataProvider provideConstructInvalidArguments
-     * @expectedException \TypeError
      */
     public function testConstructorWithInvalidArguments(
         $mocker,
@@ -71,6 +71,7 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
         $getMockStatusCodeCallback,
         $afterCallback
     ) {
+        $this->expectException(TypeError::class);
         $middleware = new OpenApiDataMockerRouteMiddleware($mocker, $responses, $responseFactory, $getMockStatusCodeCallback, $afterCallback);
     }
 

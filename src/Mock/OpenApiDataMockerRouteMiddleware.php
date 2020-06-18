@@ -100,7 +100,7 @@ final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
                 // response schema contains headers definitions, apply them one by one
                 foreach ($mockedResponse['headers'] as $headerName => $headerDefinition) {
                     $headerDefinition = (array) $headerDefinition;
-                    $response = $response->withHeader($headerName, $this->mocker->mockFromSchema($headerDefinition['schema']));
+                    $response = $response->withHeader($headerName, $this->mocker->mockSchemaObject($headerDefinition['schema']));
                 }
             }
 
@@ -125,7 +125,7 @@ final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
                 }
 
                 if ($contentType === 'application/json') {
-                    $responseBody = $this->mocker->mockFromSchema($responseContentSchema);
+                    $responseBody = $this->mocker->mockSchemaObject($responseContentSchema);
                     $response->getBody()->write(json_encode($responseBody));
                 } else {
                     // notify developer that only application/json response supported so far

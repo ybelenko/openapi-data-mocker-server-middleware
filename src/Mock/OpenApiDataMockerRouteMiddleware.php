@@ -87,7 +87,9 @@ final class OpenApiDataMockerRouteMiddleware implements MiddlewareInterface
         $customCallback = $this->getMockStatusCodeCallback;
         $customAfterCallback = $this->afterCallback;
         $mockedStatusCode = (is_callable($customCallback)) ? $customCallback($request, $this->responses) : null;
-        if ($mockedStatusCode && array_key_exists($mockedStatusCode, $this->responses)) {
+        // check that status code can be valid array key
+        $isMockedStatusValidKey = is_string($mockedStatusCode) || is_integer($mockedStatusCode);
+        if ($isMockedStatusValidKey && array_key_exists($mockedStatusCode, $this->responses)) {
             // response schema successfully selected, we can mock it now
             $statusCode = ($mockedStatusCode === 'default') ? 200 : (int) $mockedStatusCode;
             $mockedResponse = (array) $this->responses[$mockedStatusCode];

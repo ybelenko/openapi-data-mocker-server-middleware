@@ -23,7 +23,7 @@ composer require ybelenko/openapi-data-mocker-server-middleware
 3. `$responseFactory: ResponseFactoryInterface`
     + Any PSR-17 compliant response factory. [PSR-17: HTTP Factories - 2.2 ResponseFactoryInterface](https://www.php-fig.org/psr/psr-17/#22-responsefactoryinterface)
 4. `$getMockStatusCodeCallback: callable|null = null`
-    + is callback before mock data generation. Below example shows how to enable mock feature for only requests with `X-OpenAPIServer-Mock: ping` HTTP header. Adjust requests filtering to fit your project requirements. This function must return single response schema from `$responses` array parameter. **Mock feature is disabled when callback returns anything beside array.**
+    + is callback before mock data generation. Below example shows how to enable mock feature for only requests with `X-OpenAPIServer-Mock: ping` HTTP header. Adjust requests filtering to fit your project requirements. This function must return single response schema from `$responses` array parameter. **Mock feature is disabled when callback returns anything beside existent key from `$responses` array, eg `'default'` or `200`.**
 5. `$afterCallback: callable|null = null`
     + is callback executed after mock data generation. Most obvious use case is append specific HTTP headers to distinguish real and fake responses. **This function must always return response instance.**
 

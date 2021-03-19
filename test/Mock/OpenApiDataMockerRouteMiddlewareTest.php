@@ -312,4 +312,123 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
             ],
         ];
     }
+
+    /**
+     * Covers issue @url https://github.com/ybelenko/openapi-data-mocker-server-middleware/issues/1
+     *
+     * @covers ::process
+     * @dataProvider provideIssue1Arguments
+     */
+    public function testCallbackReturnFalse(
+        $mocker,
+        $responses,
+        $responseFactory,
+        $getMockStatusCodeCallback,
+        $afterCallback,
+        $request,
+        $expectedStatusCode,
+        $expectedHeaders,
+        $notExpectedHeaders
+    ) {
+        // Create a stub for the RequestHandlerInterface interface.
+        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler->method('handle')
+            ->willReturn($responseFactory->createResponse());
+
+        $middleware = new OpenApiDataMockerRouteMiddleware(
+            $mocker,
+            $responses,
+            $responseFactory,
+            $getMockStatusCodeCallback,
+            $afterCallback
+        );
+        $response = $middleware->process($request, $handler);
+
+        // check status code
+        $this->assertSame($expectedStatusCode, $response->getStatusCode());
+
+        // check http headers in request
+        foreach ($expectedHeaders as $expectedHeader => $expectedHeaderValue) {
+            // var_dump($expectedHeader);
+            $this->assertTrue($response->hasHeader($expectedHeader), sprintf('Failed asserting that request contains header %s', $expectedHeader));
+            // if ($expectedHeaderValue !== '*') {
+            //     $this->assertSame($expectedHeaderValue, $response->getHeader($expectedHeader)[0]);
+            // }
+        }
+        foreach ($notExpectedHeaders as $notExpectedHeader) {
+            $this->assertFalse($response->hasHeader($notExpectedHeader));
+        }
+    }
+
+    public function provideIssue1Arguments()
+    {
+        $mocker = new OpenApiDataMocker();
+        $responseFactory = new Psr17Factory();
+
+        $getMockStatusCodeCallback = function (ServerRequestInterface $request, array $responses) {
+            // check if client clearly asks for mocked response
+            $pingHeader = 'X-OpenAPIServer-Mock';
+            $pingHeaderCode = 'X-OpenAPIServer-Mock';
+            if (
+                $request->hasHeader($pingHeader)
+                && $request->getHeader($pingHeader)[0] === 'ping'
+            ) {
+                $responses = (array) $responses;
+                $requestedResponseCode = ($request->hasHeader($pingHeaderCode)) ? $request->getHeader($pingHeaderCode)[0] : 'default';
+                if (array_key_exists($requestedResponseCode, $responses)) {
+                    return $requestedResponseCode;
+                }
+
+                // return first response key
+                reset($responses);
+                return key($responses);
+            }
+
+            return false;
+        };
+
+        $afterCallback = function (ServerRequestInterface $request, ResponseInterface $response) {
+            // mark mocked response to distinguish real and fake responses
+            return $response->withHeader('X-OpenAPIServer-Mock', 'pong');
+        };
+
+        $responses = [
+            'default' => [
+                'description' => 'Success Response',
+                'headers' => [
+                    'X-Location' => ['schema' => ['type' => 'string']],
+                    'X-Created-Id' => ['schema' => ['type' => 'integer']],
+                ],
+                'content' => [
+                    'application/json;encoding=utf-8' => ['schema' => ['type' => 'object', 'properties' => ['id' => ['type' => 'integer'], 'className' => ['type' => 'string'], 'declawed' => ['type' => 'boolean']]]],
+                ],
+            ],
+        ];
+
+        return [
+            'issue #1 feature enabled' => [
+                $mocker,
+                $responses,
+                $responseFactory,
+                $getMockStatusCodeCallback,
+                $afterCallback,
+                $responseFactory->createServerRequest('GET', '/phpunit')
+                    ->withHeader('X-OpenAPIServer-Mock', 'ping'),
+                200,
+                ['X-OpenAPIServer-Mock' => 'pong', 'content-type' => 'application/json', 'x-location' => '*', 'x-created-id' => '*'],
+                [],
+            ],
+            'issue #1 without mock header' => [
+                $mocker,
+                $responses,
+                $responseFactory,
+                $getMockStatusCodeCallback,
+                $afterCallback,
+                $responseFactory->createServerRequest('GET', '/phpunit'),
+                200,
+                [],
+                ['X-OpenAPIServer-Mock', 'x-location', 'x-created-id'],
+            ],
+        ];
+    }
 }

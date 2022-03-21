@@ -1,5 +1,7 @@
 # Openapi Data Mocker Server Middleware
 
+[![Build Status](https://github.com/ybelenko/openapi-data-mocker-server-middleware/actions/workflows/ci.yml/badge.svg)](https://github.com/ybelenko/openapi-data-mocker-server-middleware/actions/workflows/ci.yml)
+
 [PSR-15](https://www.php-fig.org/psr/psr-15/) HTTP Server Middleware to create mock responses from [OpenAPI Schemas](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md)(OAS 3.0). This package was an enhancement of PHP Slim4 server in [OpenAPI Generator](https://github.com/OpenAPITools/openapi-generator) project, but it easier to maintain it in separated repo.
 
 ## Requirements

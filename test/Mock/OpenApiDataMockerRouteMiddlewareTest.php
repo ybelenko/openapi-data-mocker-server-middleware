@@ -349,11 +349,7 @@ class OpenApiDataMockerRouteMiddlewareTest extends TestCase
 
         // check http headers in request
         foreach ($expectedHeaders as $expectedHeader => $expectedHeaderValue) {
-            // var_dump($expectedHeader);
             $this->assertTrue($response->hasHeader($expectedHeader), sprintf('Failed asserting that request contains header %s', $expectedHeader));
-            // if ($expectedHeaderValue !== '*') {
-            //     $this->assertSame($expectedHeaderValue, $response->getHeader($expectedHeader)[0]);
-            // }
         }
         foreach ($notExpectedHeaders as $notExpectedHeader) {
             $this->assertFalse($response->hasHeader($notExpectedHeader));
